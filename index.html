@@ -228,6 +228,9 @@ body.p-body{background:var(--p-bg);color:var(--p-ink);font-family:'Inter',system
 .p-maptbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
 .p-maptbl td{padding:5px 6px;border-bottom:1px solid #EEE9E0;vertical-align:middle;}
 .p-maptbl td.t{color:var(--p-mut);max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.p-laser{position:fixed;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:radial-gradient(circle,#ff2a1f 0 38%,rgba(255,42,31,.45) 55%,rgba(255,42,31,0) 72%);box-shadow:0 0 14px 5px rgba(255,30,20,.45);pointer-events:none;z-index:70;display:none;}
+.p-laser.on{display:block;}
+.p-stagewrap.laser-on,.p-stagewrap.laser-on *{cursor:none !important;}
 .p-notes{height:32%;flex-shrink:0;background:#fff;border-top:1px solid var(--p-line);padding:14px 18px;overflow:auto;font-size:15px;line-height:1.55;white-space:pre-wrap;display:none;}
 .p-notes.show{display:block;}
 .p-notes b{display:block;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--p-rust);margin-bottom:6px;}
@@ -289,6 +292,7 @@ body.p-body{background:var(--p-bg);color:var(--p-ink);font-family:'Inter',system
   </div>
   <button class="p-btn" id="deckBtn" title="Load your edited presentation">Load deck</button>
   <button class="p-btn" id="followBtn" title="Switch the app automatically with the slide">Follow slides</button>
+  <button class="p-btn" id="laserBtn" title="Red laser pointer over the slides (P)">● Pointer</button>
   <button class="p-btn" id="notesBtn" title="Speaker notes (N)">Notes</button>
   <button class="p-btn icon" id="fsBtn" title="Full screen (F)">⛶</button>
   <button class="p-btn icon" id="setBtn" title="Apps and links">⚙</button>
@@ -326,6 +330,7 @@ body.p-body{background:var(--p-bg);color:var(--p-ink);font-family:'Inter',system
   </div>
 </div>
 <div class="p-shield" id="shield"></div>
+<div class="p-laser" id="laser"></div>
 
 <div class="p-modal" id="setModal"><div class="p-dlg">
   <h3>Apps in this presentation</h3>
@@ -380,6 +385,7 @@ body.p-body{background:var(--p-bg);color:var(--p-ink);font-family:'Inter',system
   <b>Load deck</b> takes your edited presentation: save it as PDF from PowerPoint and add it, plus the .pptx for speaker notes. You can also drop the files on the slide. The drop-down beside the slide number sets which app opens with each slide.<br><br>
   <b>ROM data → Lock</b> keeps a chosen shift's ROM entries (for example today's A shift until the day after tomorrow) even after the ROM app's 10-hour clean-up, as long as this page is open when you use the app. The green 🔒 badge shows what is locked.<br><br>
   <b>ROM data → Demo data</b> (on the app bar) saves a shift of ROM Quality Monitoring entries with their trip counts and loads them into the shift running during your talk, so nothing has to be typed after 2 PM.<br><br>
+  <b>● Pointer</b> (or <kbd>P</kbd>) turns the mouse into a red laser dot over the slides, so the audience can follow what you point at.<br><br>
   <kbd>1</kbd>–<kbd>9</kbd> open app 1–9 &nbsp; <kbd>R</kbd> reload app &nbsp; <kbd>L</kbd> cycle layout &nbsp; <kbd>N</kbd> notes &nbsp; <kbd>F</kbd> full screen<br><br>
   When you click inside an app, the keyboard belongs to that app. The orange <b>Keys in app</b> badge appears; click the slide (or the badge) to get the arrow keys and the presentation clicker back.<br><br>
   <b>Follow slides</b> opens the matching app when you change slide: blasthole slide → BH2KMZ, ROM slides → ROM Quality Monitoring, Value Chain slides → Quality Value Chain. Switch it off to keep any app open.<br><br>
@@ -937,6 +943,18 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
   setTimeout(watchRomFrame,1000);})();
 getLocks().then(renderLockChip);
 
+
+/* ================= laser pointer ================= */
+(function(){
+  if(st.laser===undefined)st.laser=true;
+  const dot=$('laser'),btn=$('laserBtn'),area=$('stagewrap');
+  function paint(){btn.classList.toggle('on',!!st.laser);area.classList.toggle('laser-on',!!st.laser);if(!st.laser)dot.classList.remove('on');}
+  area.addEventListener('mousemove',e=>{if(!st.laser)return;dot.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';dot.classList.add('on');});
+  area.addEventListener('mouseleave',()=>dot.classList.remove('on'));
+  btn.onclick=()=>{st.laser=!st.laser;save();paint();};
+  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||document.querySelector('.p-modal.on'))return;if(e.key==='p'||e.key==='P'){st.laser=!st.laser;save();paint();}});
+  paint();
+})();
 </script>
 </body>
 </html>
